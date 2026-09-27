@@ -1,0 +1,14 @@
+---
+- name: Configure dnf repositories
+  ansible.builtin.yum_repository:
+    name: "{{ item.name }}"
+    description: "{{ item.description | default(item.name) }}"
+    baseurl: "{{ item.baseurl }}"
+    gpgkey: "{{ item.gpgkey | default(omit) }}"
+    gpgcheck: "{{ item.gpgkey is defined }}"
+    priority: "{{ item.priority | default(omit) }}"
+    enabled: "{{ item.enabled | default(true) }}"
+    state: "{{ item.state | default('present') }}"
+  loop: "{{ repo.repositories }}"
+  loop_control:
+    label: "{{ item.name }}"

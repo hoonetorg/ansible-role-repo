@@ -1,0 +1,24 @@
+---
+- name: Import repository GPG keys
+  ansible.builtin.rpm_key:
+    key: "{{ item.gpgkey }}"
+    state: present
+  loop: "{{ repo.repositories }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when:
+    - item.gpgkey is defined
+    - item.state | default('present') == 'present'
+
+- name: Configure zypper repositories
+  community.general.zypper_repository:
+    name: "{{ item.name }}"
+    description: "{{ item.description | default(omit) }}"
+    repo: "{{ item.baseurl }}"
+    priority: "{{ item.priority | default(omit) }}"
+    enabled: "{{ item.enabled | default(true) }}"
+    autorefresh: true
+    state: "{{ item.state | default('present') }}"
+  loop: "{{ repo.repositories }}"
+  loop_control:
+    label: "{{ item.name }}"

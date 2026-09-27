@@ -1,0 +1,20 @@
+---
+- name: Configure apt repositories
+  ansible.builtin.deb822_repository:
+    name: "{{ item.name }}"
+    types: [deb]
+    uris: "{{ item.baseurl }}"
+    suites: "{{ item.suites }}"
+    components: "{{ item.components | default(omit) }}"
+    signed_by: "{{ item.gpgkey | default(omit) }}"
+    enabled: "{{ item.enabled | default(true) }}"
+    state: "{{ item.state | default('present') }}"
+  loop: "{{ repo.repositories }}"
+  loop_control:
+    label: "{{ item.name }}"
+  register: repo_apt_repositories
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+  when: repo_apt_repositories is changed

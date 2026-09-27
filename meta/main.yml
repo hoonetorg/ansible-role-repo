@@ -1,0 +1,15 @@
+galaxy_info:
+  author: hoonetorg
+  description: Configure additional package repositories (zypper, dnf, apt)
+  license: Apache-2.0
+  min_ansible_version: "2.15"
+  platforms:
+    - name: opensuse
+      versions: [all]
+    - name: Fedora
+      versions: [all]
+    - name: Debian
+      versions: [all]
+  galaxy_tags: [repository, zypper, dnf, apt]
+
+dependencies: []

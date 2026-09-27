@@ -1,0 +1,4 @@
+---
+- name: Configure repositories for {{ ansible_os_family }}
+  ansible.builtin.include_tasks: "{{ ansible_os_family }}.yml"
+  when: repo.repositories | default([]) | length > 0
