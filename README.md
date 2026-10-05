@@ -19,6 +19,24 @@ repo:
 On Suse the `gpgkey` is imported with `rpm_key` before the repository is added. On RedHat
 `gpgcheck` is enabled when `gpgkey` is set. On Debian `gpgkey` becomes `Signed-By`.
 
+## Distribution repositories
+
+```yaml
+repo:
+  distribution_nonfree: true   # default false
+  rpmfusion: true              # default false, Fedora and EL only
+```
+
+- `distribution_nonfree`:
+  - Suse: enables every repository whose alias ends in `repo-non-oss` (e.g. `openSUSE:repo-non-oss` from the
+    zypper service; zypper keeps the state in the service)
+  - Debian: `main contrib non-free non-free-firmware` for the official entries of this release
+    (`<codename>`, `-updates`, `-security`) in `/etc/apt/sources.list.d/debian.sources` (deb822) and
+    `/etc/apt/sources.list` (one-line); only entries with Debian components are touched, backports is never
+    added or changed
+  - EL (AlmaLinux, Rocky): CRB and EPEL
+- `rpmfusion`: RPM Fusion free + nonfree release packages (Fedora, EL)
+
 ## License
 
 Apache-2.0

@@ -1,0 +1,46 @@
+---
+# repo-non-oss usually comes from the zypper service "openSUSE" (alias openSUSE:repo-non-oss); zypper keeps
+# the enabled state of service repositories in the service, so it survives a service refresh
+- name: Read zypper repositories
+  ansible.builtin.command:
+    argv: [zypper, -n, -x, lr]
+  register: repo_zypper_lr
+  changed_when: false
+  check_mode: false
+  when: repo.distribution_nonfree | default(false)
+
+- name: Find non-oss repositories
+  ansible.builtin.set_fact:
+    repo_nonoss: "{{ repos | selectattr('@alias', 'search', 'repo-non-oss$') | list }}"
+  vars:
+    repos: "{{ [(repo_zypper_lr.stdout | ansible.utils.from_xml).stream['repo-list'].repo | default([])] | flatten }}"
+  when: repo.distribution_nonfree | default(false)
+
+- name: No non-oss repository found
+  ansible.builtin.debug:
+    msg: "repo: no repository with alias *repo-non-oss configured - nothing to enable"
+  when:
+    - repo.distribution_nonfree | default(false)
+    - repo_nonoss | length == 0
+
+- name: Enable non-oss repositories
+  ansible.builtin.command:
+    argv: [zypper, -n, modifyrepo, --enable, "{{ item }}"]
+  loop: "{{ repo_nonoss | rejectattr('@enabled', 'equalto', '1') | map(attribute='@alias') | list }}"
+  changed_when: true
+  register: repo_nonoss_enabled
+  when: repo.distribution_nonfree | default(false)
+
+- name: Refresh enabled non-oss repositories
+  ansible.builtin.command:
+    argv: [zypper, -n, refresh, --repo, "{{ item.item }}"]
+  loop: "{{ repo_nonoss_enabled.results | default([]) | selectattr('changed', 'defined') | selectattr('changed') | list }}"
+  loop_control:
+    label: "{{ item.item }}"
+  changed_when: false
+  when: not ansible_check_mode
+
+- name: RPM Fusion is not available on Suse
+  ansible.builtin.debug:
+    msg: "repo: rpmfusion is only supported on Fedora and EL - ignored"
+  when: repo.rpmfusion | default(false)

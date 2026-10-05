@@ -1,0 +1,37 @@
+---
+# EL (AlmaLinux, Rocky, CentOS Stream): CRB + EPEL; RPM Fusion separately (Fedora and EL)
+- name: Enable CRB and EPEL
+  when:
+    - repo.distribution_nonfree | default(false)
+    - ansible_distribution != 'Fedora'
+  block:
+    - name: Enable CRB
+      community.general.dnf_config_manager:
+        name: crb
+        state: enabled
+
+    - name: Install EPEL release package
+      ansible.builtin.package:
+        name: epel-release
+        state: present
+
+# only missing release packages are downloaded (later updates come from the RPM Fusion repos themselves)
+- name: List installed RPM Fusion release packages
+  ansible.builtin.command:
+    argv: [rpm, -qa, --qf, "%{NAME}\n", "rpmfusion-*-release"]
+  register: repo_rpmfusion_installed
+  changed_when: false
+  check_mode: false
+  when: repo.rpmfusion | default(false)
+
+- name: Install RPM Fusion release packages
+  ansible.builtin.package:
+    name: "https://mirrors.rpmfusion.org/{{ item }}/{{ dist }}/rpmfusion-{{ item }}-release-{{ ansible_distribution_major_version }}.noarch.rpm"
+    state: present
+    disable_gpg_check: true   # the release packages carry the RPM Fusion keys themselves
+  loop: [free, nonfree]
+  vars:
+    dist: "{{ 'fedora' if ansible_distribution == 'Fedora' else 'el' }}"
+  when:
+    - repo.rpmfusion | default(false)
+    - ("rpmfusion-" ~ item ~ "-release") not in repo_rpmfusion_installed.stdout_lines

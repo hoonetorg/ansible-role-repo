@@ -1,3 +1,9 @@
 ---
 repo:
   repositories: []
+  # enable the distribution's own non-free repositories:
+  #   Suse: repo-non-oss; Debian: contrib non-free non-free-firmware (release, -updates, -security);
+  #   EL (AlmaLinux, Rocky): CRB + EPEL
+  distribution_nonfree: false
+  # RPM Fusion free + nonfree (Fedora, EL); separate because it replaces/overlaps distribution packages
+  rpmfusion: false

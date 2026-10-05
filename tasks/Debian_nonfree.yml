@@ -1,0 +1,46 @@
+---
+# only the official Debian entries of this release (<codename>, -updates, -security) get all components;
+# backports is never added and an existing backports entry is left untouched. Entries are recognised by
+# their suite and by components that are Debian components only (third-party repos like
+# "<codename> stable" stay untouched).
+- name: Non-free components are only handled on Debian
+  ansible.builtin.debug:
+    msg: "repo: distribution_nonfree is only implemented for Debian, not {{ ansible_distribution }} - ignored"
+  when: ansible_distribution != 'Debian' or repo.rpmfusion | default(false)
+
+- name: Enable Debian components
+  when:
+    - ansible_distribution == 'Debian'
+    - repo.distribution_nonfree | default(false)
+  vars:
+    suites: "{{ ansible_distribution_release }}(?:-updates|-security)?"
+    comp: "(?:main|contrib|non-free-firmware|non-free)"
+    components: "main contrib non-free non-free-firmware"
+  block:
+    - name: Check which sources files exist
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      loop: [/etc/apt/sources.list.d/debian.sources, /etc/apt/sources.list]
+      register: repo_debian_sources
+
+    - name: Components in deb822 debian.sources
+      ansible.builtin.replace:
+        path: /etc/apt/sources.list.d/debian.sources
+        # Components line of a stanza whose Suites are only this release's official suites
+        regexp: '(?m)^(Suites:(?:[ \t]+{{ suites }})+[ \t]*\n(?:[^\n]+\n)*?)Components:[ \t]+{{ comp }}(?:[ \t]+{{ comp }})*[ \t]*$'
+        replace: '\1Components: {{ components }}'
+      register: repo_debian_deb822
+      when: repo_debian_sources.results[0].stat.exists
+
+    - name: Components in one-line sources.list
+      ansible.builtin.replace:
+        path: /etc/apt/sources.list
+        regexp: '(?m)^(deb(?:-src)?[ \t]+(?:\[[^\]\n]*\][ \t]+)?\S+[ \t]+{{ suites }})[ \t]+{{ comp }}(?:[ \t]+{{ comp }})*[ \t]*$'
+        replace: '\1 {{ components }}'
+      register: repo_debian_oneline
+      when: repo_debian_sources.results[1].stat.exists
+
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+      when: repo_debian_deb822 is changed or repo_debian_oneline is changed
