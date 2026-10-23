@@ -9,6 +9,7 @@ repo:
       description: "Filesystem tools (OBS)"
       baseurl: "https://download.opensuse.org/repositories/filesystems/{{ ansible_distribution_version }}/"
       gpgkey: "https://download.opensuse.org/repositories/filesystems/{{ ansible_distribution_version }}/repodata/repomd.xml.key"
+      # fingerprint: "ABCD 1234 ..."     # Suse: the key import fails if the key has another fingerprint
       # priority: 99
       # enabled: true
       # state: present                   # or absent
@@ -16,7 +17,13 @@ repo:
       # components: [main]               # Debian only
 ```
 
-On Suse the `gpgkey` is imported with `rpm_key` before the repository is added. On RedHat
+On Suse the `gpgkey` is imported with `rpm_key` before the repository is added; with `fingerprint` (string or
+list, as `gpg --show-keys` prints it) a wrong or exchanged key fails the import - useful for small repositories
+like an own OBS home project (`osc signkey home:<user> | gpg --show-keys`).
+
+Own builds that replace distribution packages (e.g. an OBS home project) need no `priority`: install them once
+with ansible-role-software's `{name: ..., from: <alias>}`; zypper's vendor protection then keeps them on
+`zypper up/dup/in`. A priority would prefer every package of that repository, also ones added later. On RedHat
 `gpgcheck` is enabled when `gpgkey` is set. On Debian `gpgkey` becomes `Signed-By`.
 
 ## Distribution repositories

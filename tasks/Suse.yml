@@ -1,7 +1,9 @@
 ---
+# fingerprint (optional): the import fails if the downloaded key has another fingerprint
 - name: Import repository GPG keys
   ansible.builtin.rpm_key:
     key: "{{ item.gpgkey }}"
+    fingerprint: "{{ item.fingerprint | default(omit) }}"
     state: present
   loop: "{{ repo.repositories }}"
   loop_control:
