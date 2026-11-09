@@ -7,8 +7,8 @@ repo:
   repositories:
     - name: filesystems                  # repo alias / file name
       description: "Filesystem tools (OBS)"
-      baseurl: "https://download.opensuse.org/repositories/filesystems/{{ ansible_distribution_version }}/"
-      gpgkey: "https://download.opensuse.org/repositories/filesystems/{{ ansible_distribution_version }}/repodata/repomd.xml.key"
+      baseurl: "https://download.opensuse.org/repositories/filesystems/{{ ansible_facts.distribution_version }}/"
+      gpgkey: "https://download.opensuse.org/repositories/filesystems/{{ ansible_facts.distribution_version }}/repodata/repomd.xml.key"
       # fingerprint: "ABCD 1234 ..."     # Suse: the key import fails if the key has another fingerprint
       # priority: 99
       # enabled: true

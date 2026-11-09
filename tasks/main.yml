@@ -1,8 +1,8 @@
 ---
-- name: Configure repositories for {{ ansible_os_family }}
-  ansible.builtin.include_tasks: "{{ ansible_os_family }}.yml"
+- name: Configure repositories for {{ ansible_facts.os_family }}
+  ansible.builtin.include_tasks: "{{ ansible_facts.os_family }}.yml"
   when: repo.repositories | default([]) | length > 0
 
-- name: Enable distribution repositories for {{ ansible_os_family }}
-  ansible.builtin.include_tasks: "{{ ansible_os_family }}_nonfree.yml"
+- name: Enable distribution repositories for {{ ansible_facts.os_family }}
+  ansible.builtin.include_tasks: "{{ ansible_facts.os_family }}_nonfree.yml"
   when: repo.distribution_nonfree | default(false) or repo.rpmfusion | default(false)

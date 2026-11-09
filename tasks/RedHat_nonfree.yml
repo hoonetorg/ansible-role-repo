@@ -3,7 +3,7 @@
 - name: Enable CRB and EPEL
   when:
     - repo.distribution_nonfree | default(false)
-    - ansible_distribution != 'Fedora'
+    - ansible_facts.distribution != 'Fedora'
   block:
     - name: Enable CRB
       community.general.dnf_config_manager:
@@ -26,12 +26,12 @@
 
 - name: Install RPM Fusion release packages
   ansible.builtin.package:
-    name: "https://mirrors.rpmfusion.org/{{ item }}/{{ dist }}/rpmfusion-{{ item }}-release-{{ ansible_distribution_major_version }}.noarch.rpm"
+    name: "https://mirrors.rpmfusion.org/{{ item }}/{{ dist }}/rpmfusion-{{ item }}-release-{{ ansible_facts.distribution_major_version }}.noarch.rpm"
     state: present
     disable_gpg_check: true   # the release packages carry the RPM Fusion keys themselves
   loop: [free, nonfree]
   vars:
-    dist: "{{ 'fedora' if ansible_distribution == 'Fedora' else 'el' }}"
+    dist: "{{ 'fedora' if ansible_facts.distribution == 'Fedora' else 'el' }}"
   when:
     - repo.rpmfusion | default(false)
     - ("rpmfusion-" ~ item ~ "-release") not in repo_rpmfusion_installed.stdout_lines

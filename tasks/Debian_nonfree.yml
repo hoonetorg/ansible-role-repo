@@ -5,15 +5,15 @@
 # "<codename> stable" stay untouched).
 - name: Non-free components are only handled on Debian
   ansible.builtin.debug:
-    msg: "repo: distribution_nonfree is only implemented for Debian, not {{ ansible_distribution }} - ignored"
-  when: ansible_distribution != 'Debian' or repo.rpmfusion | default(false)
+    msg: "repo: distribution_nonfree is only implemented for Debian, not {{ ansible_facts.distribution }} - ignored"
+  when: ansible_facts.distribution != 'Debian' or repo.rpmfusion | default(false)
 
 - name: Enable Debian components
   when:
-    - ansible_distribution == 'Debian'
+    - ansible_facts.distribution == 'Debian'
     - repo.distribution_nonfree | default(false)
   vars:
-    suites: "{{ ansible_distribution_release }}(?:-updates|-security)?"
+    suites: "{{ ansible_facts.distribution_release }}(?:-updates|-security)?"
     comp: "(?:main|contrib|non-free-firmware|non-free)"
     components: "main contrib non-free non-free-firmware"
   block:
